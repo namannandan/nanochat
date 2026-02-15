@@ -29,6 +29,7 @@ from tasks.mmlu import MMLU
 from tasks.smoltalk import SmolTalk
 from tasks.customjson import CustomJSON
 from tasks.spellingbee import SimpleSpelling, SpellingBee
+from tasks.spellcheck import SpellCheck
 
 # -----------------------------------------------------------------------------
 # CLI arguments
@@ -112,12 +113,14 @@ train_dataset = TaskMixture([
     CustomJSON(filepath=identity_conversations_filepath), # let's do 2 epochs of these
     SimpleSpelling(size=200000, split="train"), # 200K rows of Simple Spelling (e.g. spell the word 'apple')
     SpellingBee(size=80000, split="train"), # 80K rows of Spelling Bee (e.g. how many 'r' are in 'strawberry'?)
-]) # total: 460K + 100K + 16K + 200K + 80K = 856K rows
+    SpellCheck(size=100000, split="train"), # 100K rows of Spelling Correction (e.g. correct misspelled sentences)
+]) # total: 460K + 100K + 16K + 200K + 80K + 100K = 956K rows
 val_dataset = TaskMixture([
     SmolTalk(split="test"), # 24K rows in test set
     MMLU(subset="all", split="test", stop=5200), # 14K rows in test set, use only 5.2K to match the train ratios
     GSM8K(subset="main", split="test", stop=420), # 1.32K rows in test set, use only 420 to match the train ratios
-]) # total: 24K + 14K + 1.32K ~= 39K rows
+    SpellCheck(size=5000, split="test"), # 5K rows of Spelling Correction for validation
+]) # total: 24K + 5.2K + 0.42K + 5K ~= 34.62K rows
 # DataLoader is defined here, it emits inputs, targets : 2D tensors of shape (device_batch_size, max_seq_len)
 # A big problem is that we don't know the final num_iterations in advance. So we create
 # these two global variables and update them from within the data generator.
